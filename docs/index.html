@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dabu: script and footage in, a cut TikTok ad out</title>
+<meta name="description" content="Dabu is an open-source AI video ad editor. Gemini picks the best moment in your footage for every line of your script; FFmpeg cuts a 9:16 ad timed to your voiceover.">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 66'%3E%3Cpath fill='%23ff5a36' d='M39.5 56.13C13.55 73.8.76 68.63.76 33.31.76-2.01 13.96-6.92 39.9 10.74c25.95 17.66 25.54 27.73-.4 45.4Z'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Dabu: script and footage in, a cut TikTok ad out">
+<meta property="og:description" content="Open-source AI video ad editor. Gemini picks the clip for every line; FFmpeg cuts it to your voiceover.">
+<meta property="og:url" content="https://harrythentrepreneur.github.io/dabu-studio/">
+<meta property="og:image" content="https://harrythentrepreneur.github.io/dabu-studio/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://harrythentrepreneur.github.io/dabu-studio/og.png">
+<style>
+@font-face{font-family:Brico;src:url(assets/bricolage.woff2) format("woff2");font-weight:200 800;font-display:swap}
+@font-face{font-family:Inter;src:url(assets/inter.woff2) format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:JBM;src:url(assets/jbmono.woff2) format("woff2");font-weight:500;font-display:swap}
+:root{
+  --bg:#0b0b0c;--bg2:#121214;--card:#16161a;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);
+  --ink:#f5f2ee;--mut:#b4aea7;--dim:#6f6a65;--coral:#ff5a36;--amber:#ffb547;
+  --r:18px;--max:1160px;--ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+img{max-width:100%;display:block}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 28px}
+.mono{font-family:JBM,ui-monospace,monospace}
+.k{font:500 12px JBM,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--coral)}
+h1,h2,h3{font-family:Brico,Inter,sans-serif;letter-spacing:-.035em;margin:0;text-wrap:balance}
+h2{font-size:clamp(32px,4.2vw,52px);line-height:1.04;font-weight:800}
+p{text-wrap:pretty}
+.lead{color:var(--mut);font-size:18px;max-width:640px}
+
+/* grain + glow */
+body:before{content:"";position:fixed;inset:-50%;z-index:0;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+main,header,footer{position:relative;z-index:1}
+
+/* nav */
+nav{position:sticky;top:0;z-index:20;backdrop-filter:saturate(140%) blur(12px);background:rgba(11,11,12,.72);border-bottom:1px solid transparent;transition:border-color .3s}
+nav.stuck{border-color:var(--line)}
+nav .wrap{display:flex;align-items:center;gap:28px;height:64px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font:800 22px Brico;letter-spacing:-.02em}
+.logo svg{width:22px;height:24px}
+nav .links{display:flex;gap:22px;margin-left:auto;font-size:14px;color:var(--mut)}
+nav .links a{text-decoration:none;transition:color .2s}
+nav .links a:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:999px;font:600 14px Inter;text-decoration:none;border:1px solid var(--line2);transition:transform .2s var(--ease),background .2s,border-color .2s}
+.btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.3)}
+.btn.p{background:var(--coral);border-color:var(--coral);color:#140804}
+.btn.p:hover{background:#ff6d4d}
+.btn svg{width:16px;height:16px}
+
+/* hero */
+.hero{position:relative;padding:84px 0 40px;overflow:hidden}
+.hero:before{content:"";position:absolute;width:900px;height:900px;left:-300px;top:-380px;background:radial-gradient(closest-side,rgba(255,90,54,.22),transparent);pointer-events:none}
+.hero:after{content:"";position:absolute;width:700px;height:700px;right:-260px;top:40px;background:radial-gradient(closest-side,rgba(255,181,71,.10),transparent);pointer-events:none}
+.hgrid{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;position:relative;z-index:1}
+.pill{display:inline-flex;align-items:center;gap:8px;font:500 12px JBM;color:#e9e4de;border:1px solid var(--line2);background:rgba(255,255,255,.03);border-radius:999px;padding:6px 12px}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 4px rgba(255,90,54,.2)}
+.hero h1{font-size:clamp(44px,6.4vw,84px);line-height:.98;font-weight:800;margin:22px 0 0}
+.hero h1 em{font-style:normal;color:var(--coral)}
+.hero .lead{margin:24px 0 0}
+.cta{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap}
+.stack{display:flex;gap:8px;flex-wrap:wrap;margin-top:34px}
+.stack span{font:500 12px JBM;color:#d8d3cd;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+
+/* phone + cut list */
+.stage{position:relative;height:560px}
+.phone{position:absolute;right:18px;top:0;width:262px;height:540px;border-radius:38px;padding:10px;background:#050506;border:1px solid var(--line2);box-shadow:0 40px 120px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04) inset;transform:rotate(3deg)}
+.screen{position:relative;width:100%;height:100%;border-radius:29px;overflow:hidden;background:#000}
+.screen .shot{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transform:scale(1.06);transition:opacity .7s var(--ease),transform 3.4s linear}
+.screen .shot.on{opacity:1;transform:scale(1)}
+.cap{position:absolute;left:14px;right:14px;bottom:56px;text-align:center;font:700 16px/1.25 Inter;color:#fff;text-shadow:0 2px 0 #000,0 0 12px rgba(0,0,0,.8);transition:opacity .3s}
+.bar{position:absolute;left:14px;right:14px;bottom:28px;height:3px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden}
+.bar b{display:block;height:100%;width:0;background:var(--coral)}
+.cuts{position:absolute;left:0;top:70px;display:flex;flex-direction:column;gap:10px;z-index:2}
+.cut{display:flex;align-items:center;gap:12px;width:250px;padding:8px 12px 8px 8px;border-radius:12px;background:rgba(22,22,26,.86);backdrop-filter:blur(8px);border:1px solid var(--line);transition:border-color .3s,transform .4s var(--ease),box-shadow .3s}
+.cut .th{width:32px;height:46px;border-radius:6px;background-size:cover;background-position:center;flex:none}
+.cut .t{font-size:12.5px;line-height:1.3;color:#ece8e3}
+.cut .m{font:500 10.5px JBM;color:var(--mut);margin-top:3px}
+.cut.on{border-color:rgba(255,90,54,.65);box-shadow:0 0 0 4px rgba(255,90,54,.12);transform:translateX(10px)}
+.cut.on .m{color:var(--coral)}
+
+section{padding:96px 0}
+.shead{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:44px;flex-wrap:wrap}
+.shead p{margin:14px 0 0}
+
+/* demo */
+.browser{border-radius:var(--r);border:1px solid var(--line2);background:var(--bg2);overflow:hidden;box-shadow:0 50px 140px rgba(0,0,0,.6),0 0 0 1px rgba(255,90,54,.08)}
+.chrome{display:flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-bottom:1px solid var(--line);background:#101012}
+.chrome i{width:10px;height:10px;border-radius:50%;background:#2a2a2e}
+.chrome span{margin-left:14px;font:500 11.5px JBM;color:var(--dim)}
+.note{margin-top:14px;font-size:13px;color:var(--dim);text-align:center}
+
+/* studios */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px}
+.tab{font:600 14px Inter;color:var(--mut);background:transparent;border:1px solid var(--line);border-radius:999px;height:40px;padding:0 16px;cursor:pointer;transition:all .2s}
+.tab:hover{color:var(--ink);border-color:var(--line2)}
+.tab[aria-selected=true]{color:#140804;background:var(--coral);border-color:var(--coral)}
+.tab:focus-visible,.btn:focus-visible,.copy:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+.studio{display:grid;grid-template-columns:.36fr .64fr;gap:34px;align-items:center}
+.studio h3{font-size:30px;font-weight:800}
+.studio p{color:var(--mut);margin:12px 0 0}
+.studio ul{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:10px}
+.studio li{display:flex;gap:10px;font-size:14.5px;color:#d8d3cd}
+.studio li:before{content:"";flex:none;width:6px;height:6px;margin-top:9px;border-radius:2px;background:var(--coral)}
+.frame{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line2);box-shadow:0 30px 90px rgba(0,0,0,.55);aspect-ratio:16/10;background:#0e0e10}
+.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:left top;opacity:0;transition:opacity .45s var(--ease)}
+.frame img.on{opacity:1}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;counter-reset:s}
+.step{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px 22px;overflow:hidden;transition:border-color .3s,transform .3s var(--ease)}
+.step:hover{border-color:rgba(255,90,54,.45);transform:translateY(-3px)}
+.step:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(260px circle at var(--mx,50%) var(--my,0%),rgba(255,90,54,.13),transparent 60%);opacity:0;transition:opacity .3s}
+.step:hover:after{opacity:1}
+.step .n{font:500 11px JBM;color:var(--mut);letter-spacing:.08em}
+.step h3{font:600 17px/1.3 Inter;letter-spacing:-.01em;margin:12px 0 8px}
+.step p{font-size:13.5px;line-height:1.55;color:#b3ada6;margin:0 0 14px}
+.step .w{display:inline-block;font:500 11px JBM;color:#d8d3cd;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:7px;padding:4px 8px}
+.step .ic{width:34px;height:34px;border-radius:10px;background:rgba(255,90,54,.12);display:grid;place-items:center;margin-bottom:14px}
+.step .ic svg{width:17px;height:17px;stroke:var(--coral);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.step.last{background:linear-gradient(180deg,rgba(255,90,54,.12),var(--card) 65%);border-color:rgba(255,90,54,.35)}
+.flow{height:2px;margin:28px 0 0;border-radius:2px;background:linear-gradient(90deg,transparent,var(--coral),transparent);background-size:40% 100%;background-repeat:no-repeat;animation:flow 3.2s linear infinite;opacity:.6}
+@keyframes flow{from{background-position:-40% 0}to{background-position:140% 0}}
+.foot-note{margin-top:22px;color:var(--mut);font-size:14px}
+
+/* quick start */
+.qs{display:grid;grid-template-columns:.8fr 1.2fr;gap:40px;align-items:start}
+.hgrid>*,.studio>*,.qs>*{min-width:0}
+pre{position:relative;margin:0;background:#0f0f11;border:1px solid var(--line);border-radius:16px;padding:22px 22px;overflow:auto;font:500 13.5px/1.75 JBM,monospace;color:#e7e2dc}
+pre .c{color:var(--dim)}
+pre .g{color:var(--coral)}
+.copy{position:absolute;top:12px;right:12px;font:600 12px Inter;color:var(--ink);background:rgba(255,255,255,.07);border:1px solid var(--line2);border-radius:8px;height:32px;padding:0 12px;cursor:pointer}
+.env{margin-top:26px;display:grid;gap:8px}
+.env div{display:flex;justify-content:space-between;gap:16px;font-size:14px;border-bottom:1px solid var(--line);padding:10px 0;color:var(--mut)}
+.env code{font:500 12.5px JBM;color:var(--ink)}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding:56px 0 70px;color:var(--mut);font-size:14px}
+.fgrid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:40px}
+footer h4{font:600 13px Inter;color:var(--ink);margin:0 0 12px}
+footer a{color:var(--ink);text-decoration-color:rgba(255,255,255,.25);text-underline-offset:3px}
+footer p{margin:0 0 8px}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.rv.in{opacity:1;transform:none}
+
+@media (max-width:980px){
+  .hgrid,.studio,.qs{grid-template-columns:1fr}
+  .stage{height:520px;max-width:520px;margin:0 auto;width:100%}
+  .steps{grid-template-columns:1fr 1fr}
+  .fgrid{grid-template-columns:1fr}
+  nav .links{display:none}
+}
+@media (max-width:560px){
+  .wrap{padding:0 20px}
+  section{padding:80px 0}
+  .stage{height:auto;display:flex;flex-direction:column;align-items:center;gap:22px;padding-top:8px}
+  .phone{position:relative;right:auto;top:auto;width:230px;height:470px;transform:rotate(2deg);order:1}
+  .cuts{position:relative;top:auto;left:auto;order:2;width:100%}
+  .cut{width:100%}
+  .cut.on{transform:none}
+  .steps{grid-template-columns:1fr}
+  .tab{height:44px}
+  pre{font-size:12px;padding:52px 16px 18px}
+  pre .g{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<header>
+<nav id="nav"><div class="wrap">
+  <a class="logo" href="#top" aria-label="Dabu home"><svg viewBox="0 0 60 66" aria-hidden="true"><path fill="#ff5a36" d="M39.5004 56.1335C13.5544 73.7949 0.758789 68.6337 0.758789 33.3093C0.758789 -2.01356 13.9598 -6.92432 39.9058 10.7371C65.8493 28.4001 65.4439 38.4705 39.5004 56.1335Z"/></svg>Dabu</a>
+  <div class="links"><a href="#demo">Demo</a><a href="#studios">Studios</a><a href="#how">How it works</a><a href="#start">Quick start</a></div>
+  <a class="btn" href="https://github.com/harrythentrepreneur/dabu-studio"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+</div></nav>
+</header>
+
+<main id="top">
+<section class="hero"><div class="wrap hgrid">
+  <div>
+    <span class="pill"><i></i>Open source · AGPL-3.0</span>
+    <h1>Script and footage in.<br><em>A cut TikTok ad out.</em></h1>
+    <p class="lead">Give Dabu your ad script and a folder of raw clips. Gemini watches every clip and picks the best few seconds for each line. FFmpeg cuts a 9:16 ad, timed to your voiceover.</p>
+    <div class="cta">
+      <a class="btn p" href="https://github.com/harrythentrepreneur/dabu-studio#quick-start">Run it yourself</a>
+      <a class="btn" href="#demo">Watch the demo</a>
+    </div>
+    <div class="stack"><span>Next.js</span><span>Gemini vision</span><span>Whisper</span><span>FFmpeg</span><span>RunPod</span></div>
+  </div>
+  <div class="stage" aria-label="A four-line script being matched to clips and played as a vertical ad">
+    <div class="cuts" id="cuts"></div>
+    <div class="phone"><div class="screen" id="screen"><div class="cap" id="cap"></div><div class="bar"><b id="bar"></b></div></div></div>
+  </div>
+</div></section>
+
+<section id="demo" style="padding-top:40px"><div class="wrap">
+  <div class="shead rv"><div><div class="k">Demo</div><h2>One script. Four clips.<br>Twelve seconds of ad.</h2></div>
+  <p class="lead">Type the script, drop the clips, add a voiceover. The results page shows the cut, every scene with its match score, and the script.</p></div>
+  <div class="browser rv"><div class="chrome"><i></i><i></i><i></i><span>localhost:3000/express-builder</span></div>
+    <img src="assets/demo.gif" width="1280" height="760" loading="lazy" alt="Dabu Express Builder: a four-line script is typed, four clips and a voiceover are added, the job processes, and the results page shows the cut ad with a scene breakdown, then Clip Studio finds stock moments for each line."></div>
+  <p class="note">The real Dabu frontend, recorded headless. The brand (Northwind Candles), the AI-generated clips and the backend replies are demo data.</p>
+</div></section>
+
+<section id="studios"><div class="wrap">
+  <div class="shead rv"><div><div class="k">The studios</div><h2>Five tools around one idea:<br>let the model do the searching.</h2></div></div>
+  <div class="tabs rv" role="tablist" id="tabs"></div>
+  <div class="studio rv">
+    <div><h3 id="sh"></h3><p id="sp"></p><ul id="sl"></ul></div>
+    <div class="frame" id="frame"></div>
+  </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <div class="shead rv"><div><div class="k">How it works</div><h2>From a script to a finished cut</h2></div>
+  <p class="lead">A Next.js app in front, a Python worker on RunPod behind it, and object storage in the middle.</p></div>
+  <div class="steps">
+    <div class="step rv"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg></div><div class="n">01 · UPLOAD</div><h3>Script, clips, voiceover</h3><p>The browser sends raw clips straight to S3-compatible storage with presigned URLs.</p><span class="w">Next.js</span></div>
+    <div class="step rv"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/></svg></div><div class="n">02 · SCORE</div><h3>Gemini scores every clip</h3><p>Clips are compressed, then Gemini vision matches each script line to the best few seconds of footage.</p><span class="w">Gemini vision</span></div>
+    <div class="step rv"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M8 7v10M4 10v4M16 7v10M20 10v4"/></svg></div><div class="n">03 · TIME</div><h3>Cuts land on your words</h3><p>With a voiceover, Whisper returns word timings so each cut starts on its line.</p><span class="w">Whisper · optional</span></div>
+    <div class="step rv"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.1 15.9M14.5 14.5L20 20M8.1 8.1L12 12"/></svg></div><div class="n">04 · CUT</div><h3>FFmpeg exports 9:16</h3><p>A RunPod worker extracts, merges and scales every cut to a 1080×1920 vertical video.</p><span class="w">RunPod · FFmpeg</span></div>
+    <div class="step last rv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 9.5l3 2.5-3 2.5z"/></svg></div><div class="n">05 · RESULTS</div><h3>Your ad, ready to post</h3><p>Watch the cut, check each scene and its score, then download it or open it in CapCut.</p><span class="w">Results page</span></div>
+  </div>
+  <div class="flow" aria-hidden="true"></div>
+  <p class="foot-note">RunPod workers scale to zero, so you pay only for the GPU seconds a job uses. Each job also writes <span class="mono">script.txt</span> and <span class="mono">timestamps.json</span>.</p>
+</div></section>
+
+<section id="start"><div class="wrap qs">
+  <div class="rv"><div class="k">Quick start</div><h2>Run it on your machine</h2>
+    <p class="lead" style="margin-top:16px">You need Node 20+, Python 3.11+, FFmpeg, and keys for Gemini and Clerk. Storage and RunPod are needed for the full pipeline.</p>
+    <div class="env">
+      <div><code>GEMINI_API_KEY</code><span>clip analysis</span></div>
+      <div><code>OPENAI_API_KEY</code><span>Whisper timing (optional)</span></div>
+      <div><code>DO_SPACES_*</code><span>video storage</span></div>
+      <div><code>RUNPOD_*</code><span>GPU worker</span></div>
+      <div><code>CLERK_*</code><span>sign-in</span></div>
+    </div>
+  </div>
+  <div class="rv"><pre id="code"><button class="copy" id="copy" type="button">Copy</button><span class="c"># clone</span>
+git clone https://github.com/harrythentrepreneur/dabu-studio.git
+cd dabu-studio
+
+<span class="c"># frontend</span>
+cd frontend
+cp .env.example .env.local   <span class="c"># add your keys</span>
+npm install --legacy-peer-deps
+npm run dev                  <span class="g"># http://localhost:3000</span>
+
+<span class="c"># backend worker (local test server)</span>
+cd ../backend
+cp .env.example .env
+pip install -r requirements.txt
+python test_server.py</pre>
+  <p class="note" style="text-align:left">Deploying the worker: <a href="https://github.com/harrythentrepreneur/dabu-studio/blob/main/docs/deployment/RUNPOD_DEPLOYMENT.md">RUNPOD_DEPLOYMENT.md</a></p></div>
+</div></section>
+</main>
+
+<footer><div class="wrap fgrid">
+  <div><a class="logo" href="#top" style="text-decoration:none"><svg viewBox="0 0 60 66" aria-hidden="true"><path fill="#ff5a36" d="M39.5004 56.1335C13.5544 73.7949 0.758789 68.6337 0.758789 33.3093C0.758789 -2.01356 13.9598 -6.92432 39.9058 10.7371C65.8493 28.4001 65.4439 38.4705 39.5004 56.1335Z"/></svg>Dabu</a>
+    <p style="margin-top:14px">Built as a product, now shared as-is. The Express Builder pipeline runs end to end; expect rough edges.</p></div>
+  <div><h4>Credits</h4><p>Built by <a href="https://github.com/harrythentrepreneur">Harry Edwards</a> and Kaviru Hapuarachchi.</p><p>Parts of the frontend shell are adapted from <a href="https://github.com/rybbit-io/rybbit">Rybbit</a> (AGPL-3.0). See <a href="https://github.com/harrythentrepreneur/dabu-studio/blob/main/NOTICE">NOTICE</a>.</p></div>
+  <div><h4>Licence</h4><p><a href="https://github.com/harrythentrepreneur/dabu-studio/blob/main/LICENSE">AGPL-3.0</a></p><p><a href="https://github.com/harrythentrepreneur/dabu-studio">Source on GitHub</a></p></div>
+</div></footer>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // nav border on scroll
+  const nav = document.getElementById('nav');
+  addEventListener('scroll', () => nav.classList.toggle('stuck', scrollY > 8), {passive:true});
+
+  // hero: cut list + phone
+  const lines = [
+    ['Your evenings deserve better light.', '3.0s', '94%'],
+    ['Strike a match. Slow down.', '2.4s', '91%'],
+    ['Hand-poured soy wax, small batches.', '3.2s', '88%'],
+    ['Light one tonight. Northwind Candles.', '3.4s', '96%']
+  ];
+  const cuts = document.getElementById('cuts'), screen = document.getElementById('screen'),
+        cap = document.getElementById('cap'), bar = document.getElementById('bar');
+  // stills from the four demo clips used in the README demo
+  const stills = ['assets/still-1.jpg','assets/still-2.jpg','assets/still-3.jpg','assets/still-4.jpg'];
+  const shots = stills.map(s => { const d = document.createElement('div'); d.className = 'shot'; d.style.backgroundImage = `url(${s})`; screen.insertBefore(d, cap); return d; });
+  const rows = lines.map((l, i) => {
+    const r = document.createElement('div'); r.className = 'cut';
+    r.innerHTML = `<div class="th" style="background-image:url(${stills[i]})"></div><div><div class="t">${l[0]}</div><div class="m">0${i+1} · ${l[1]} · ${l[2]}</div></div>`;
+    cuts.appendChild(r); return r;
+  });
+  let k = 0, t0 = performance.now();
+  const durs = lines.map(l => parseFloat(l[1]) * 1000);
+  const total = durs.reduce((a, b) => a + b, 0);
+  function show(i){ k = i; rows.forEach((r, j) => r.classList.toggle('on', j === i)); shots.forEach((s, j) => s.classList.toggle('on', j === i)); cap.textContent = lines[i][0]; }
+  show(0);
+  if (!reduce) {
+    (function tick(now){
+      let el = (now - t0) % total, acc = 0, i = 0;
+      while (el > acc + durs[i]) { acc += durs[i]; i++; }
+      if (i !== k) show(i);
+      bar.style.width = ((now - t0) % total) / total * 100 + '%';
+      requestAnimationFrame(tick);
+    })(t0);
+  } else { bar.style.width = '30%'; }
+
+  // studios tabs
+  const studios = [
+    ['Express Builder','assets/01-express-builder.jpg','Paste a script, drop your clips, add a voiceover if you have one. Dabu returns an ad with hard cuts, matched line by line.',['One script line per scene','Optional voiceover for word-timed cuts','Processing view with live progress']],
+    ['Results','assets/03-results.jpg','The cut ad in a 9:16 player, a scene breakdown with the match score and length for every line, and the script.',['Download the video','Open it in CapCut','See why each clip was picked']],
+    ['Quick Create','assets/04-quick-create.jpg','The Express Builder flow with burned-in captions. Pick a caption style from the preset grid before you generate.',['Caption style presets','Same matching engine','Beta']],
+    ['Clip Studio','assets/05-clip-studio.jpg','Gemini splits your script into moments and searches stock clips for each one, so you can fill gaps in your own footage.',['Hook, emotion, solution and CTA moments','Search terms per moment','Hover to preview']],
+    ['GIF Studio','assets/06-gif-studio.jpg','Finds GIF overlays for each line of the script by mood.',['Results grouped by line','Preview before you use one']],
+    ['Trending Audio','assets/07-trending-audio.jpg','Browse a ranked list of music tracks and preview them before you pick one for the ad.',['Rank movement at a glance','Inline previews']]
+  ];
+  const tabs = document.getElementById('tabs'), frame = document.getElementById('frame');
+  const sh = document.getElementById('sh'), sp = document.getElementById('sp'), sl = document.getElementById('sl');
+  const imgs = studios.map((s, i) => { const im = new Image(); im.src = s[1]; im.alt = s[0] + ' screen in Dabu'; im.loading = 'lazy'; im.width = 1600; im.height = 1000; frame.appendChild(im); return im; });
+  const btns = studios.map((s, i) => { const b = document.createElement('button'); b.className = 'tab'; b.type = 'button'; b.role = 'tab'; b.textContent = s[0]; b.onclick = () => pick(i, true); tabs.appendChild(b); return b; });
+  let cur = 0, user = false;
+  function pick(i, byUser){ cur = i; if (byUser) user = true; btns.forEach((b, j) => b.setAttribute('aria-selected', j === i)); imgs.forEach((m, j) => m.classList.toggle('on', j === i)); sh.textContent = studios[i][0]; sp.textContent = studios[i][2]; sl.innerHTML = studios[i][3].map(x => `<li>${x}</li>`).join(''); }
+  pick(0);
+  tabs.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const n = (cur + (e.key === 'ArrowRight' ? 1 : studios.length - 1)) % studios.length; pick(n, true); btns[n].focus(); } });
+  if (!reduce) setInterval(() => { if (!user) pick((cur + 1) % studios.length); }, 5200);
+
+  // pointer glow on steps
+  document.querySelectorAll('.step').forEach(s => s.addEventListener('pointermove', e => { const r = s.getBoundingClientRect(); s.style.setProperty('--mx', (e.clientX - r.left) + 'px'); s.style.setProperty('--my', (e.clientY - r.top) + 'px'); }));
+
+  // copy
+  document.getElementById('copy').onclick = async (e) => { const txt = document.getElementById('code').innerText.replace(/^Copy\n?/, ''); try { await navigator.clipboard.writeText(txt); e.target.textContent = 'Copied'; } catch { e.target.textContent = 'Select and copy'; } setTimeout(() => e.target.textContent = 'Copy', 1600); };
+
+  // reveal
+  const els = document.querySelectorAll('.rv');
+  setTimeout(() => els.forEach(e => { if (e.getBoundingClientRect().top < innerHeight) e.classList.add('in'); }), 50);
+  if (reduce || !('IntersectionObserver' in window)) els.forEach(e => e.classList.add('in'));
+  else { const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), {rootMargin:'0px 0px -8% 0px'}); els.forEach(e => io.observe(e)); }
+})();
+</script>
+</body>
+</html>

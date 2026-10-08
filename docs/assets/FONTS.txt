@@ -1,0 +1,8 @@
+Fonts used by the website in this folder
+
+- Bricolage Grotesque (bricolage.woff2), Copyright The Bricolage Grotesque Project Authors
+- Inter (inter.woff2), Copyright The Inter Project Authors
+- JetBrains Mono (jbmono.woff2), Copyright The JetBrains Mono Project Authors
+
+All three are licensed under the SIL Open Font License 1.1:
+https://openfontlicense.org/open-font-license-official-text/
