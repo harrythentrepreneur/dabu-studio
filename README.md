@@ -90,7 +90,7 @@ Dabu was built as a product and is now shared as-is. The pipeline works end to e
 
 ## Credits
 
-Built by [Harry Edwards](https://github.com/harrythentrepreneur) and [Kaviru Hapuarachchi](https://github.com/Kavirubc). Parts of the frontend shell are adapted from [Rybbit](https://github.com/rybbit-io/rybbit) (AGPL-3.0); see [NOTICE](NOTICE).
+Built by [Harry Edwards](https://github.com/harrythentrepreneur) and Kaviru Hapuarachchi. Parts of the frontend shell are adapted from [Rybbit](https://github.com/rybbit-io/rybbit) (AGPL-3.0); see [NOTICE](NOTICE).
 
 ## License
 
