@@ -65,8 +65,7 @@ to a vision model, and you keep the creative call.
     <td width="50%"><img src="assets/06-gif-studio.jpg" alt="GIF Studio: GIF results for each script line"><br><sub><b>GIF Studio.</b> Overlays matched to each line.</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/07-trending-audio.jpg" alt="Trending Audio: a ranked list of tracks with preview controls"><br><sub><b>Trending Audio.</b> Track list with previews. Names in this screenshot are demo data.</sub></td>
-    <td width="50%"></td>
+    <td colspan="2" align="center"><img src="assets/07-trending-audio.jpg" alt="Trending Audio: a ranked list of tracks with preview controls" width="50%"><br><sub><b>Trending Audio.</b> Track list with previews. Names in this screenshot are demo data.</sub></td>
   </tr>
 </table>
 
