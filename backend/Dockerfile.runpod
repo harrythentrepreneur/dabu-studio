@@ -1,0 +1,168 @@
+# Multi-stage Dockerfile for RunPod serverless deployment
+# Optimized for CapCut Web automation with Playwright and heavy processing
+
+# Stage 1: Builder
+FROM python:3.11-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    cmake \
+    wget \
+    git \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements first for better caching
+COPY requirements.txt /tmp/
+COPY requirements-runpod.txt /tmp/
+# Also copy nested requirements referenced by requirements.txt
+RUN mkdir -p /tmp/runpod/worker
+COPY runpod/worker/requirements.txt /tmp/runpod/worker/requirements.txt
+
+# Install Python dependencies with optimizations
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    pip install --no-cache-dir -r /tmp/requirements-runpod.txt
+
+# Stage 2: Runtime
+FROM python:3.11-slim
+
+# Install runtime dependencies for heavy processing
+RUN apt-get update && apt-get install -y \
+    # FFmpeg for video processing
+    ffmpeg \
+    # Required for Playwright browser automation
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libatspi2.0-0 \
+    libx11-6 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libxcb1 \
+    libxkbcommon0 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2 \
+    libgtk-3-0 \
+    libgdk-pixbuf-xlib-2.0-0 \
+    # Additional utilities
+    curl \
+    wget \
+    ca-certificates \
+    fonts-liberation \
+    fonts-noto-color-emoji \
+    # Virtual display for headless browser
+    xvfb \
+    x11vnc \
+    fluxbox \
+    # Process and system monitoring
+    procps \
+    htop \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Playwright browsers (Chromium only for smaller image) 
+# Install browsers first, then handle font dependencies separately
+RUN playwright install chromium && \
+    # Install additional fonts that are available in Debian trixie
+    apt-get update && apt-get install -y \
+    fonts-unifont \
+    fonts-liberation \
+    fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Verify Playwright installation
+RUN playwright --version
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY . /app/
+
+# Create necessary directories
+RUN mkdir -p /app/temp \
+    /app/output \
+    /app/logs \
+    /app/uploads \
+    /tmp/playwright
+
+# Set environment variables for RunPod heavy processing
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/home/appuser/.cache/ms-playwright \
+    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
+    # RunPod specific configuration
+    ENVIRONMENT_MODE=PRODUCTION \
+    RUNPOD_DEBUG_LEVEL=INFO \
+    # Flask configuration
+    FLASK_APP=app.py \
+    FLASK_ENV=production \
+    # CapCut Web Service configuration
+    MAX_BROWSER_INSTANCES=3 \
+    ENABLE_MONITORING=true \
+    DEBUG_SCREENSHOTS=true \
+    # Display configuration for headless browser
+    DISPLAY=:99 \
+    XVFB_WHD=1920x1080x24
+
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app /tmp/playwright && \
+    # Copy Playwright browsers to appuser home directory
+    mkdir -p /home/appuser/.cache && \
+    cp -r /root/.cache/ms-playwright /home/appuser/.cache/ && \
+    chown -R appuser:appuser /home/appuser/.cache
+
+# Switch to non-root user
+USER appuser
+
+# Health check endpoint
+HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8000/health 2>/dev/null || python -c "import sys; sys.exit(0)" || exit 1
+
+# Expose port for RunPod handler
+EXPOSE 8000
+
+# Create startup script that starts Xvfb and the application
+USER root
+RUN echo '#!/bin/bash\n\
+    set -e\n\
+    echo "Cleaning up any existing X11 locks..."\n\
+    rm -f /tmp/.X99-lock\n\
+    echo "Starting Xvfb virtual display..."\n\
+    Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset &\n\
+    XVFB_PID=$!\n\
+    echo "Waiting for display to be ready..."\n\
+    sleep 3\n\
+    echo "Starting RunPod handler..."\n\
+    exec python -u runpod_handler.py' > /app/start.sh && \
+    chmod +x /app/start.sh && \
+    chown appuser:appuser /app/start.sh
+
+USER appuser
+
+# RunPod handler with virtual display
+CMD ["/app/start.sh"]

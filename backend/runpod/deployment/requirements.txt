@@ -1,0 +1,34 @@
+# RunPod specific requirements for CapCut Web automation
+
+# RunPod SDK
+runpod==1.6.2
+
+# Browser automation
+playwright==1.40.0
+playwright-stealth==1.0.6
+
+# Async support
+aiohttp==3.9.1
+aiofiles==23.2.1
+
+# Process management
+psutil==5.9.8
+
+# Cloud storage (already in main requirements but ensuring version)
+boto3==1.35.94
+
+# WebDriver as fallback (optional)
+selenium==4.16.0
+webdriver-manager==4.0.1
+
+# Image processing for screenshots
+Pillow==10.2.0
+
+# Additional utilities for production
+gunicorn==21.2.0
+gevent==23.9.1
+redis==5.0.1  # For queue management if needed
+
+# Monitoring and logging
+prometheus-client==0.19.0
+structlog==24.1.0

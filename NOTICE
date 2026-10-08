@@ -1,0 +1,10 @@
+Dabu
+Copyright (c) 2025-2026 Harry Edwards and Kaviru Hapuarachchi.
+Licensed under the GNU Affero General Public License v3.0 (see LICENSE).
+
+Third-party material
+--------------------
+Parts of the frontend shell (frontend/shared/, frontend/lib/store.ts,
+frontend/lib/dateTimeUtils.ts, frontend/lib/urlParams.ts, frontend/lib/rybbit-types.ts,
+frontend/lib/stripe.ts, frontend/components/RybbitTopBar.tsx and related layout code)
+are adapted from Rybbit, https://github.com/rybbit-io/rybbit, licensed AGPL-3.0.

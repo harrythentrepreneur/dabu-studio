@@ -1,0 +1,27 @@
+{
+  "name": "Dabu - AI Video Ad Creator",
+  "short_name": "Dabu",
+  "description": "Transform your scripts into perfectly synced TikTok ads with AI-powered video editing",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/Vector.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "video", "utilities"],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Create TikTok ads with AI"
+    }
+  ]
+}

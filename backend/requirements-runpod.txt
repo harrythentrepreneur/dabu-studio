@@ -1,0 +1,47 @@
+# RunPod Worker Requirements for Express Builder
+# All dependencies needed for video processing on RunPod
+
+# RunPod SDK
+runpod==1.6.2
+
+# Cloud Storage (for Digital Ocean Spaces)
+boto3==1.34.25
+# Let pip resolve botocore version automatically
+
+# API and Networking  
+requests==2.31.0
+# urllib3 will be resolved automatically to avoid conflicts
+
+# Google Gemini AI
+google-generativeai>=0.8.0
+# Let pip resolve the rest of the Google dependencies
+
+# Video/Image Processing (lightweight alternatives)
+Pillow==10.2.0
+imageio==2.33.1
+imageio-ffmpeg==0.4.9
+
+# Utilities
+python-dotenv==1.0.0
+python-multipart==0.0.6
+
+# Data Processing
+numpy==1.24.3
+
+# Logging
+structlog==24.1.0
+
+# File handling
+aiofiles==23.2.1
+
+# Web framework (for testing and health checks)
+flask==3.0.0
+flask-cors==4.0.0
+
+# Browser automation for CapCut Web
+playwright==1.44.0
+playwright-stealth==1.0.6
+
+# Additional dependencies for heavy processing
+psutil==5.9.8
+tqdm==4.66.2

@@ -1,0 +1,10 @@
+# Root Requirements for Dabu Backend
+# This file is referenced by the top-level Dockerfile for generic builds.
+# It simply delegates to the full dependency list used by the RunPod worker.
+-r runpod/worker/requirements.txt
+ffmpeg-python==0.2.0
+
+# Additional lightweight dependencies used in local test servers
+flask==2.3.3
+flask-cors==4.0.0
+python-dotenv==1.0.0

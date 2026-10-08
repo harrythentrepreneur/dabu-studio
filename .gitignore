@@ -1,0 +1,176 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+frontend/node_modules/
+backend/node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+frontend/.next/
+frontend/out/
+
+# production
+/build
+frontend/build/
+dist/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.claude
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+!.env.template
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Python backend
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/logs/
+backend/temp/
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.ruff_cache/
+backend/htmlcov/
+backend/.coverage
+backend/*.egg-info/
+
+# Video files - Input videos (large source files)
+input_videos/
+
+# Temporary processing files (cleaned up after 1 hour)
+backend/temp/
+
+# Output videos (keep these for user downloads, but don't track in git)
+backend/output/
+output/
+
+# Large video files anywhere in the project
+*.mp4
+*.MP4
+*.mov
+*.MOV
+*.avi
+*.AVI
+*.mkv
+*.webm
+
+# GIF files
+*.gif
+*.GIF
+
+# ZIP archives (often large capcut projects)
+*.zip
+*.ZIP
+
+# Backup files
+*.backup
+*.bak
+.git-rewrite/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+*.lnk
+
+# Claude settings
+.claude/
+
+# CapCut temporary files
+backend/capcut_automation/outputs/
+backend/capcut_automation/temp_*/
+*.tmp
+draft.extra
+draft_*.json
+draft_settings
+draft_virtual_store.json
+template*.tmp
+
+# Music scraper data (potentially large)
+backend/music-scraper/*.json
+backend/music-scraper/*.csv
+!backend/music-scraper/requirements.txt
+
+# Test files
+backend/old_tests/
+test_*.py
+!backend/test_quick_create.py
+
+# Log files
+*.log
+logs/
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db:encryptable
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
